@@ -52,8 +52,9 @@ Requer Python 3.12 ou superior. Crie o ambiente, instale dependências e execute
 ## Demonstração rápida (PowerShell)
 
     $headers = @{ "X-API-Key" = "grupo8-demo-key" }
-    $body = @{ sensor_id="solo-talhao-01"; metric="soil_moisture"; value=18; unit="%"; location="Talhão Norte" } | ConvertTo-Json
-    Invoke-RestMethod -Method Post -Uri http://localhost:8000/api/v1/telemetry -Headers $headers -ContentType "application/json" -Body $body
+    $json = @{ sensor_id="solo-talhao-01"; metric="soil_moisture"; value=18; unit="%"; location="Talhão Norte" } | ConvertTo-Json
+    $body = [System.Text.Encoding]::UTF8.GetBytes($json)
+    Invoke-RestMethod -Method Post -Uri http://localhost:8000/api/v1/telemetry -Headers $headers -ContentType "application/json; charset=utf-8" -Body $body
     Invoke-RestMethod -Uri http://localhost:8000/api/v1/alerts -Headers $headers
 
 O segundo comando deve retornar um alerta `warning`, indicando baixa umidade do solo e necessidade de irrigação. Temperatura igual ou superior a `40 °C` também gera alerta `critical`.

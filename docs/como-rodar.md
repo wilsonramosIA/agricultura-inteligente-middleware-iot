@@ -90,19 +90,20 @@ Com os serviços em execução, envie uma medição de baixa umidade do solo. A 
 
 ```powershell
 $headers = @{ "X-API-Key" = "grupo8-demo-key" }
-$body = @{
+$json = @{
   sensor_id = "solo-talhao-01"
   metric = "soil_moisture"
   value = 18
   unit = "%"
   location = "Talhão Norte"
 } | ConvertTo-Json
+$body = [System.Text.Encoding]::UTF8.GetBytes($json)
 
-Invoke-RestMethod -Method Post -Uri http://localhost:8000/api/v1/telemetry -Headers $headers -ContentType "application/json" -Body $body
+Invoke-RestMethod -Method Post -Uri http://localhost:8000/api/v1/telemetry -Headers $headers -ContentType "application/json; charset=utf-8" -Body $body
 Invoke-RestMethod -Method Get -Uri http://localhost:8000/api/v1/alerts -Headers $headers
 ```
 
-O primeiro comando registra a leitura; o segundo deve exibir um alerta `warning` recomendando irrigação.
+O corpo é convertido explicitamente para UTF-8 para que caracteres como `ã` em `Talhão Norte` sejam aceitos pelo serviço. O primeiro comando registra a leitura; o segundo deve exibir um alerta `warning` recomendando irrigação.
 
 ## Simular sensor offline
 
