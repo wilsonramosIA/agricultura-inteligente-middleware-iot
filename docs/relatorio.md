@@ -24,7 +24,7 @@ O Gateway não conhece a persistência dos serviços e os clientes não acessam 
 
 ## Comunicação distribuída
 
-A solução usa HTTP/REST e JSON. `X-API-Key` autentica consumidores externos, enquanto `X-Internal-API-Key` protege chamadas entre serviços. Cada chamada possui timeout configurável. O Gateway produz um identificador de correlação (`X-Request-ID`) e registra método, rota, status e duração nos logs.
+A solução usa HTTP/REST e JSON. `X-API-Key` autentica consumidores externos, enquanto `X-Internal-API-Key` protege chamadas entre serviços. Cada chamada possui timeout configurável. O Gateway produz um identificador de correlação (`X-Request-ID`) e registra método, rota, status e duração nos logs. Quando Alertas está indisponível, Telemetria persiste o evento em uma fila local e o reprocessa periodicamente, evitando a perda de alertas.
 
 ## Evidências dos requisitos
 
@@ -35,6 +35,7 @@ A solução usa HTTP/REST e JSON. `X-API-Key` autentica consumidores externos, e
 | Banco de dados | SQLite isolado por microsserviço. |
 | Segurança | Duas chaves distintas; rotas internas não aceitam chave de cliente. |
 | Exceções e timeout | Respostas 401, 422, 503 e 504; timeout HTTP configurável. |
+| Fallback | Fila SQLite de alertas pendentes, retentativas periódicas e `Retry-After` para o cliente. |
 | Logs e timestamp | `logging` no Gateway e timestamps ISO 8601 UTC. |
 | Swagger | `http://localhost:8000/docs`. |
 | Testes | Casos em `tests/`, executados com `pytest`. |

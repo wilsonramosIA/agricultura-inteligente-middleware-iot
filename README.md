@@ -23,7 +23,7 @@ Projeto prático de Sistemas Distribuídos. A solução simula monitoramento de 
 | Middleware do grupo | API Gateway com autenticação, roteamento, correlação e logs |
 | Autenticação | `X-API-Key` externo e `X-Internal-API-Key` interno |
 | Logs e timestamp | Logs estruturados no Gateway; timestamps UTC nas telemetrias e alertas |
-| Exceções e timeout | HTTP 503/504 no Gateway e timeout configurável de 3 s |
+| Exceções, timeout e fallback | HTTP 503/504 com `Retry-After`, timeout configurável e fila persistente para alertas pendentes |
 | Documentação da API | Swagger/OpenAPI automático em `/docs` |
 | Testes funcionais | `pytest` cobre autenticação, persistência e ciclo de alerta |
 

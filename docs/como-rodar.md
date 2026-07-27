@@ -114,4 +114,5 @@ pytest -q
 | Porta 8000 ocupada | Encerre o processo que usa a porta ou altere o mapeamento em `docker-compose.yml`. |
 | Resposta HTTP 401 | Envie o cabeçalho `X-API-Key: grupo8-demo-key`. |
 | Resposta HTTP 503 ou 504 | Confirme que os serviços de Telemetria e Alertas foram iniciados antes do Gateway. |
+| Serviço de Alertas indisponível | A leitura permanece salva e a avaliação entra na fila persistente; o serviço tenta reenviá-la a cada 30 segundos. |
 | API não abre no navegador | Confirme `http://localhost:8000/health` e consulte os logs com `docker compose logs`. |

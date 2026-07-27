@@ -22,6 +22,8 @@ services:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-grupo8-internal-key}
       ALERT_URL: http://alert-service:8002
       SERVICE_TIMEOUT_SECONDS: ${SERVICE_TIMEOUT_SECONDS:-3}
+      RETRY_INTERVAL_SECONDS: ${RETRY_INTERVAL_SECONDS:-30}
+      PENDING_RETRY_BATCH_SIZE: ${PENDING_RETRY_BATCH_SIZE:-20}
       TELEMETRY_DB_PATH: /app/data/telemetry.db
     volumes:
       - telemetry-data:/app/data
@@ -40,4 +42,3 @@ services:
 volumes:
   telemetry-data:
   alert-data:
-

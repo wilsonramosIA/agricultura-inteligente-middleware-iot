@@ -52,8 +52,10 @@ flowchart LR
 ## Falhas, segurança e observabilidade
 
 - Chamadas Gateway → serviço usam timeout configurável (`SERVICE_TIMEOUT_SECONDS`, padrão de 3 segundos).
-- Timeout retorna HTTP 504; indisponibilidade retorna HTTP 503.
-- A leitura é salva antes da avaliação do alerta. Caso Alertas falhe, ela não é perdida e é marcada como pendente.
+- Timeout retorna HTTP 504; indisponibilidade retorna HTTP 503. Ambos orientam o cliente a tentar novamente em 5 segundos por meio do cabeçalho `Retry-After`.
+- A leitura é salva antes da avaliação do alerta. Caso Alertas falhe, o evento é gravado em uma fila persistente (`pending_alert_evaluations`) e devolve `pending_due_to_alert_service_failure`.
+- O Serviço de Telemetria tenta reprocessar pendências a cada 30 segundos e também antes de aceitar uma nova leitura. O endpoint interno `/maintenance/retry-pending` permite acionar a retentativa manual; `/pending-alerts` expõe o total pendente para operação.
+- A chave única `telemetry_id` no Serviço de Alertas evita criar alertas duplicados caso uma retentativa alcance um evento já processado.
 - O Gateway registra método, rota, status, duração e `X-Request-ID`.
 - Chaves externa e interna são diferentes, impedindo o acesso do cliente às rotas privadas.
 

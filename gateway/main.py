@@ -59,9 +59,9 @@ async def forward(request: Request, method: str, base_url: str, path: str, paylo
             headers={"X-Internal-API-Key": config.INTERNAL_API_KEY, "X-Request-ID": request.state.request_id},
         )
     except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail="Timeout ao comunicar com o microsserviço")
+        raise HTTPException(status_code=504, detail="Timeout ao comunicar com o microsserviço", headers={"Retry-After": "5"})
     except httpx.RequestError:
-        raise HTTPException(status_code=503, detail="Microsserviço indisponível")
+        raise HTTPException(status_code=503, detail="Microsserviço indisponível", headers={"Retry-After": "5"})
     return Response(content=result.content, status_code=result.status_code, media_type="application/json")
 
 

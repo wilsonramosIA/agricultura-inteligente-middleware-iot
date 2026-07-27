@@ -15,7 +15,9 @@ def test_telemetry_persists_and_requires_internal_key(tmp_path, monkeypatch):
         created = client.post("/telemetry", json=payload, headers=headers)
         assert created.status_code == 201
         assert created.json()["alert_evaluation"] == "pending_due_to_alert_service_failure"
+        pending = client.get("/pending-alerts", headers=headers)
+        assert pending.json()["count"] == 1
+        assert pending.json()["items"][0]["telemetry_id"] == created.json()["id"]
         listing = client.get("/telemetry", headers=headers)
         assert listing.status_code == 200
         assert listing.json()[0]["sensor_id"] == "solo-01"
-
