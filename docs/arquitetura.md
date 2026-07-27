@@ -56,6 +56,8 @@ flowchart LR
 - A leitura é salva antes da avaliação do alerta. Caso Alertas falhe, o evento é gravado em uma fila persistente (`pending_alert_evaluations`) e devolve `pending_due_to_alert_service_failure`.
 - O Serviço de Telemetria tenta reprocessar pendências a cada 30 segundos e também antes de aceitar uma nova leitura. O endpoint interno `/maintenance/retry-pending` permite acionar a retentativa manual; `/pending-alerts` expõe o total pendente para operação.
 - A chave única `telemetry_id` no Serviço de Alertas evita criar alertas duplicados caso uma retentativa alcance um evento já processado.
+- Cada leitura de telemetria também é um **heartbeat**. Caso um sensor fique mais de 300 segundos sem reportar (`SENSOR_OFFLINE_THRESHOLD_SECONDS`), Telemetria cria um alerta `critical` de `sensor_offline`. Quando o sensor volta a enviar uma leitura, o alerta de indisponibilidade é reconhecido automaticamente.
+- O endpoint interno `/sensor-heartbeats` expõe a última comunicação e o estado `online`/`offline` de cada sensor para acompanhamento operacional.
 - O Gateway registra método, rota, status, duração e `X-Request-ID`.
 - Chaves externa e interna são diferentes, impedindo o acesso do cliente às rotas privadas.
 

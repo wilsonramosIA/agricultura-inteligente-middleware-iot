@@ -8,5 +8,4 @@
 6. **Alerta de irrigação (3 min):** enviar umidade do solo de 18% e consultar `/api/v1/alerts` para ver o alerta `warning`.
 7. **Alerta crítico (1 min):** enviar temperatura de 41 °C ou fumaça detectada e mostrar alerta `critical`.
 8. **Reconhecimento (1 min):** usar `PATCH /api/v1/alerts/{id}/acknowledge` e consultar alertas abertos novamente.
-9. **Resiliência e AWS (2 min):** explicar timeout/503/504, persistência antes da avaliação e evolução para ECS/EKS, API Gateway, CloudWatch e IAM.
-
+9. **Sensor offline e resiliência (2 min):** reduzir temporariamente o limite de heartbeat, demonstrar o alerta de sensor offline e explicar timeout/503/504, persistência antes da avaliação e evolução para ECS/EKS, API Gateway, CloudWatch e IAM.

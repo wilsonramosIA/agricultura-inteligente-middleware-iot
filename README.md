@@ -24,6 +24,7 @@ Projeto prático de Sistemas Distribuídos. A solução simula monitoramento de 
 | Autenticação | `X-API-Key` externo e `X-Internal-API-Key` interno |
 | Logs e timestamp | Logs estruturados no Gateway; timestamps UTC nas telemetrias e alertas |
 | Exceções, timeout e fallback | HTTP 503/504 com `Retry-After`, timeout configurável e fila persistente para alertas pendentes |
+| Sensor offline | Cada telemetria funciona como heartbeat; ausência de leitura gera alerta crítico configurável |
 | Documentação da API | Swagger/OpenAPI automático em `/docs` |
 | Testes funcionais | `pytest` cobre autenticação, persistência e ciclo de alerta |
 

@@ -40,6 +40,8 @@ def evaluate(metric: str, value: float) -> tuple[str, str] | None:
         return "warning", "Umidade abaixo do limite recomendado."
     if normalized == "soil_moisture" and value <= 20:
         return "warning", "Umidade do solo abaixo do limite: irrigação recomendada."
+    if normalized == "sensor_offline" and value > 0:
+        return "critical", f"Sensor sem comunicação há {int(value)} segundos."
     if normalized == "smoke" and value > 0:
         return "critical", "Fumaça detectada."
     return None
@@ -76,6 +78,17 @@ async def list_alerts(only_open: bool = True):
     with connect(config.ALERT_DB_PATH) as db:
         rows = db.execute(query).fetchall()
     return [{**dict(row), "acknowledged": bool(row["acknowledged"])} for row in rows]
+
+
+@app.post("/alerts/sensors/{sensor_id}/online", dependencies=[Depends(require_internal_key)], tags=["Interno"])
+async def resolve_sensor_offline_alerts(sensor_id: str):
+    """Fecha alertas de indisponibilidade assim que o sensor volta a reportar."""
+    with connect(config.ALERT_DB_PATH) as db:
+        result = db.execute(
+            "UPDATE alerts SET acknowledged = 1 WHERE sensor_id = ? AND metric = 'sensor_offline' AND acknowledged = 0",
+            (sensor_id,),
+        )
+    return {"sensor_id": sensor_id, "resolved_offline_alerts": result.rowcount}
 
 
 @app.patch("/alerts/{alert_id}/acknowledge", dependencies=[Depends(require_internal_key)], tags=["Alertas"])

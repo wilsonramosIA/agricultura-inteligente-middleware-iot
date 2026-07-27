@@ -88,10 +88,61 @@ async def retry_pending_alert_evaluations(limit: int | None = None) -> dict:
     return {"processed": len(rows), "delivered": delivered, "remaining": len(rows) - delivered}
 
 
+async def notify_sensor_online(sensor_id: str) -> None:
+    """Uma nova leitura é o heartbeat que encerra um alerta de sensor offline."""
+    try:
+        response = await app.state.client.post(
+            f"{config.ALERT_URL}/alerts/sensors/{sensor_id}/online",
+            headers={"X-Internal-API-Key": config.INTERNAL_API_KEY},
+        )
+        response.raise_for_status()
+    except (httpx.TimeoutException, httpx.RequestError, httpx.HTTPStatusError) as exc:
+        logger.warning("sensor_id=%s online_notification_failed=%s", sensor_id, type(exc).__name__)
+
+
+async def check_offline_sensors() -> dict:
+    """Detecta sensores cujo último heartbeat excedeu o limite configurado."""
+    with connect(config.TELEMETRY_DB_PATH) as db:
+        rows = db.execute(
+            """SELECT sensor_id, MAX(id) AS last_telemetry_id, MAX(received_at) AS last_seen,
+                      MAX(location) AS location
+               FROM telemetry GROUP BY sensor_id"""
+        ).fetchall()
+
+    now = datetime.now(timezone.utc)
+    detected = 0
+    queued = 0
+    for row in rows:
+        last_seen = datetime.fromisoformat(row["last_seen"])
+        seconds_without_heartbeat = int((now - last_seen).total_seconds())
+        if seconds_without_heartbeat < config.SENSOR_OFFLINE_THRESHOLD_SECONDS:
+            continue
+
+        # IDs negativos distinguem eventos de sensor offline das leituras reais.
+        event = {
+            "telemetry_id": -row["last_telemetry_id"],
+            "sensor_id": row["sensor_id"],
+            "metric": "sensor_offline",
+            "value": seconds_without_heartbeat,
+            "unit": "seconds",
+            "location": row["location"],
+            "received_at": row["last_seen"],
+        }
+        try:
+            await send_to_alert_service(event)
+            detected += 1
+        except (httpx.TimeoutException, httpx.RequestError, httpx.HTTPStatusError) as exc:
+            queue_alert_evaluation(event, exc)
+            queued += 1
+            logger.warning("sensor_id=%s offline_alert_queued=%s", row["sensor_id"], type(exc).__name__)
+    return {"detected": detected, "queued": queued}
+
+
 async def pending_retry_worker() -> None:
     while True:
         await asyncio.sleep(config.RETRY_INTERVAL_SECONDS)
         await retry_pending_alert_evaluations()
+        await check_offline_sensors()
 
 
 @asynccontextmanager
@@ -119,6 +170,7 @@ async def health():
 @app.post("/telemetry", status_code=201, dependencies=[Depends(require_internal_key)], tags=["Telemetria"])
 async def create_telemetry(payload: TelemetryInput):
     retry_summary = await retry_pending_alert_evaluations(limit=5)
+    offline_summary = await check_offline_sensors()
     received_at = datetime.now(timezone.utc).isoformat()
     with connect(config.TELEMETRY_DB_PATH) as db:
         cursor = db.execute(
@@ -126,6 +178,8 @@ async def create_telemetry(payload: TelemetryInput):
             (payload.sensor_id, payload.metric, payload.value, payload.unit, payload.location, received_at),
         )
         telemetry_id = cursor.lastrowid
+
+    await notify_sensor_online(payload.sensor_id)
 
     event = {"telemetry_id": telemetry_id, **payload.model_dump(), "received_at": received_at}
     notification = "not_evaluated"
@@ -142,6 +196,7 @@ async def create_telemetry(payload: TelemetryInput):
         "received_at": received_at,
         "alert_evaluation": notification,
         "retried_pending_alerts": retry_summary,
+        "offline_sensors": offline_summary,
     }
 
 
@@ -161,6 +216,26 @@ async def pending_alerts_status():
             "SELECT telemetry_id, attempts, last_error, queued_at, last_attempt_at FROM pending_alert_evaluations ORDER BY queued_at"
         ).fetchall()
     return {"count": len(rows), "items": [dict(row) for row in rows]}
+
+
+@app.get("/sensor-heartbeats", dependencies=[Depends(require_internal_key)], tags=["Operação"])
+async def sensor_heartbeats():
+    """Visão operacional do último heartbeat e dos sensores fora do limite."""
+    with connect(config.TELEMETRY_DB_PATH) as db:
+        rows = db.execute(
+            "SELECT sensor_id, MAX(received_at) AS last_seen FROM telemetry GROUP BY sensor_id ORDER BY sensor_id"
+        ).fetchall()
+    now = datetime.now(timezone.utc)
+    sensors = []
+    for row in rows:
+        seconds_since_last_seen = int((now - datetime.fromisoformat(row["last_seen"])).total_seconds())
+        sensors.append({
+            "sensor_id": row["sensor_id"],
+            "last_seen": row["last_seen"],
+            "seconds_since_last_seen": seconds_since_last_seen,
+            "status": "offline" if seconds_since_last_seen >= config.SENSOR_OFFLINE_THRESHOLD_SECONDS else "online",
+        })
+    return {"threshold_seconds": config.SENSOR_OFFLINE_THRESHOLD_SECONDS, "sensors": sensors}
 
 
 @app.post("/maintenance/retry-pending", dependencies=[Depends(require_internal_key)], tags=["Operação"])

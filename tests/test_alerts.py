@@ -21,3 +21,9 @@ def test_alert_lifecycle(tmp_path, monkeypatch):
         assert client.patch(f"/alerts/{alert_id}/acknowledge", headers=headers).json()["acknowledged"] is True
         assert client.get("/alerts", headers=headers).json() == []
 
+        offline = {"telemetry_id": -1, "sensor_id": "solo-01", "metric": "sensor_offline", "value": 301}
+        offline_result = client.post("/alerts/evaluate", json=offline, headers=headers)
+        assert offline_result.json()["severity"] == "critical"
+        resolved = client.post("/alerts/sensors/solo-01/online", headers=headers)
+        assert resolved.json()["resolved_offline_alerts"] == 1
+        assert client.get("/alerts", headers=headers).json() == []

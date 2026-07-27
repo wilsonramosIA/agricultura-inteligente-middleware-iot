@@ -98,6 +98,16 @@ Invoke-RestMethod -Method Get -Uri http://localhost:8000/api/v1/alerts -Headers 
 
 O primeiro comando registra a leitura; o segundo deve exibir um alerta `warning` recomendando irrigação.
 
+## Simular sensor offline
+
+O limite padrão de heartbeat é 300 segundos. Para uma demonstração rápida, altere no arquivo `.env`:
+
+```text
+SENSOR_OFFLINE_THRESHOLD_SECONDS=30
+```
+
+Reinicie os contêineres, envie uma leitura e aguarde mais de 30 segundos. A verificação periódica criará um alerta crítico `sensor_offline`. Assim que o mesmo sensor enviar nova telemetria, esse alerta será reconhecido automaticamente.
+
 ## Executar os testes automatizados
 
 Com o ambiente virtual ativo:
