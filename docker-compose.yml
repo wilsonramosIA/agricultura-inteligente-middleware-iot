@@ -1,0 +1,43 @@
+services:
+  api-gateway:
+    build: .
+    command: uvicorn gateway.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      CLIENT_API_KEY: ${CLIENT_API_KEY:-grupo8-demo-key}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-grupo8-internal-key}
+      TELEMETRY_URL: http://telemetry-service:8001
+      ALERT_URL: http://alert-service:8002
+      SERVICE_TIMEOUT_SECONDS: ${SERVICE_TIMEOUT_SECONDS:-3}
+    depends_on:
+      - telemetry-service
+      - alert-service
+    restart: unless-stopped
+
+  telemetry-service:
+    build: .
+    command: uvicorn telemetry.main:app --host 0.0.0.0 --port 8001
+    environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-grupo8-internal-key}
+      ALERT_URL: http://alert-service:8002
+      SERVICE_TIMEOUT_SECONDS: ${SERVICE_TIMEOUT_SECONDS:-3}
+      TELEMETRY_DB_PATH: /app/data/telemetry.db
+    volumes:
+      - telemetry-data:/app/data
+    restart: unless-stopped
+
+  alert-service:
+    build: .
+    command: uvicorn alerts.main:app --host 0.0.0.0 --port 8002
+    environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-grupo8-internal-key}
+      ALERT_DB_PATH: /app/data/alerts.db
+    volumes:
+      - alert-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  telemetry-data:
+  alert-data:
+
