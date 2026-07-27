@@ -78,6 +78,12 @@ uvicorn telemetry.main:app --host 0.0.0.0 --port 8001 --reload
 uvicorn gateway.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
+`0.0.0.0` significa que o servidor aceita conexões em todas as interfaces de rede; não deve ser usado no navegador. Use sempre `localhost` ou `127.0.0.1` para acessar os serviços:
+
+- Gateway e Swagger público: `http://localhost:8000/docs`
+- Telemetria (interno, para depuração): `http://localhost:8001/docs`
+- Alertas (interno, para depuração): `http://localhost:8002/docs`
+
 ## Teste funcional rápido
 
 Com os serviços em execução, envie uma medição de baixa umidade do solo. A API Key padrão da demonstração é `grupo8-demo-key`.
