@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1715" />
+    <title>TerraPulse · Monitoramento agrícola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div><strong>terrapulse</strong><small>inteligência no campo</small></div>
+        </div>
+
+        <div class="farm-switcher">
+          <span class="eyebrow">PROPRIEDADE ATIVA</span>
+          <button class="farm-button" type="button"><span class="farm-avatar">FN</span><span><b>Fazenda Nova Aurora</b><small>Talhão Norte · SP</small></span><span class="chevron">⌄</span></button>
+        </div>
+
+        <nav class="side-nav" aria-label="Navegação principal">
+          <span class="nav-label">MONITORAMENTO</span>
+          <a class="nav-link active" href="#overview"><span class="nav-icon">⌂</span>Visão geral</a>
+          <a class="nav-link" href="#telemetry"><span class="nav-icon">⌁</span>Telemetria</a>
+          <a class="nav-link" href="#sensors"><span class="nav-icon">◉</span>Sensores</a>
+          <a class="nav-link" href="#alerts"><span class="nav-icon">△</span>Alertas <span class="nav-count" id="navAlertCount">0</span></a>
+          <span class="nav-label nav-label-spaced">SISTEMA</span>
+          <a class="nav-link" href="/docs" target="_blank"><span class="nav-icon">↗</span>API / Swagger</a>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="gateway-card"><span class="status-dot"></span><div><b>Gateway operacional</b><small id="gatewayLatency">verificando conexão...</small></div></div>
+          <button class="user-card" type="button"><span class="user-avatar">WR</span><span><b>Wilson Ramos</b><small>Administrador</small></span><span class="more">•••</span></button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menu">☰</button>
+          <div class="breadcrumbs"><span>Monitoramento</span><b>/</b><strong>Visão geral</strong></div>
+          <div class="topbar-actions">
+            <span class="live-status"><span class="pulse-dot"></span><span id="connectionLabel">Dados ao vivo</span></span>
+            <button class="icon-button" id="refreshButton" type="button" title="Atualizar dados" aria-label="Atualizar dados">↻</button>
+            <button class="avatar-button" id="apiKeyButton" type="button" title="Configurar chave de API">WR</button>
+          </div>
+        </header>
+
+        <div class="content-wrap" id="overview">
+          <section class="page-intro">
+            <div><p class="eyebrow green">SEGUNDA-FEIRA, 03 DE AGOSTO DE 2026</p><h1>Bom dia, Wilson <span>✦</span></h1><p class="intro-copy">Acompanhe o que está acontecendo na sua operação agora.</p></div>
+            <button class="primary-button" id="newReadingButton" type="button"><span>＋</span> Registrar leitura</button>
+          </section>
+
+          <section class="metric-grid" aria-label="Resumo da operação">
+            <article class="metric-card accent-green"><div class="metric-head"><span>Sensores ativos</span><span class="metric-icon">◉</span></div><strong id="activeSensors">—</strong><div class="metric-foot"><span class="trend up" id="sensorTrend">—</span><span>da frota monitorada</span></div></article>
+            <article class="metric-card accent-orange"><div class="metric-head"><span>Alertas abertos</span><span class="metric-icon">△</span></div><strong id="openAlerts">—</strong><div class="metric-foot"><span class="trend warning" id="criticalAlerts">—</span><span>precisam de atenção</span></div></article>
+            <article class="metric-card accent-blue"><div class="metric-head"><span>Umidade média</span><span class="metric-icon">◌</span></div><strong id="averageMoisture">—</strong><div class="metric-foot"><span class="trend neutral" id="moistureState">aguardando dados</span><span>nos últimos registros</span></div></article>
+            <article class="metric-card accent-purple"><div class="metric-head"><span>Última atualização</span><span class="metric-icon">◷</span></div><strong class="time-value" id="lastUpdate">—</strong><div class="metric-foot"><span class="trend up">●</span><span>sincronização automática</span></div></article>
+          </section>
+
+          <section class="dashboard-grid">
+            <article class="panel chart-panel">
+              <div class="panel-heading"><div><span class="eyebrow">TENDÊNCIA DAS LEITURAS</span><h2>Condições do campo</h2></div><div class="chart-controls"><button class="period-button active" type="button">24h</button><button class="period-button" type="button">7 dias</button><select id="metricSelect" aria-label="Métrica do gráfico"><option value="soil_moisture">Umidade do solo</option><option value="temperature">Temperatura</option><option value="humidity">Umidade do ar</option></select></div></div>
+              <div class="chart-legend"><span><i class="legend-line green-line"></i><b id="chartMetricLabel">Umidade do solo</b></span><span class="chart-current" id="chartCurrent">—</span></div>
+              <div class="chart-wrap" id="chartWrap"><svg id="trendChart" viewBox="0 0 760 260" preserveAspectRatio="none" role="img" aria-label="Gráfico de tendência"></svg><div class="chart-empty" id="chartEmpty">Registre ou envie leituras para visualizar a tendência.</div></div>
+              <div class="chart-axis"><span>24h atrás</span><span>12h atrás</span><span>agora</span></div>
+            </article>
+
+            <article class="panel alert-panel" id="alerts">
+              <div class="panel-heading"><div><span class="eyebrow">ATENÇÃO DA OPERAÇÃO</span><h2>Alertas recentes <span class="heading-count" id="alertHeadingCount">0</span></h2></div><a href="#alerts" class="text-link" id="viewAllAlerts">Ver todos <span>→</span></a></div>
+              <div class="alert-list" id="alertList"><div class="skeleton-list"><span></span><span></span><span></span></div></div>
+            </article>
+          </section>
+
+          <section class="lower-grid">
+            <article class="panel sensor-panel" id="sensors">
+              <div class="panel-heading"><div><span class="eyebrow">INVENTÁRIO DE DISPOSITIVOS</span><h2>Saúde dos sensores</h2></div><a href="#sensors" class="text-link">Gerenciar <span>→</span></a></div>
+              <div class="sensor-summary"><div><strong id="sensorSummaryOnline">—</strong><span>online agora</span></div><div><strong class="orange-text" id="sensorSummaryOffline">—</strong><span>offline</span></div><div class="sensor-summary-bar"><span id="sensorBarOnline"></span></div></div>
+              <div class="sensor-list" id="sensorList"><div class="empty-inline">Carregando sensores...</div></div>
+            </article>
+
+            <article class="panel telemetry-panel" id="telemetry">
+              <div class="panel-heading"><div><span class="eyebrow">FLUXO DE DADOS</span><h2>Telemetria recente</h2></div><div class="table-tools"><button class="icon-button small" id="tableRefresh" type="button" title="Atualizar tabela">↻</button></div></div>
+              <div class="table-wrap"><table><thead><tr><th>Sensor</th><th>Métrica</th><th>Valor</th><th>Recebido</th></tr></thead><tbody id="telemetryBody"><tr><td colspan="4" class="table-empty">Carregando leituras...</td></tr></tbody></table></div>
+            </article>
+          </section>
+
+          <footer class="page-footer"><span>TerraPulse · Console de monitoramento</span><span>Atualização automática a cada 30 segundos · <a href="/health" target="_blank">status do gateway</a></span></footer>
+        </div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastIcon">✓</span><span id="toastMessage"></span></div>
+
+    <div class="modal-backdrop" id="readingModal" hidden>
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" id="closeModal" type="button" aria-label="Fechar">×</button>
+        <span class="eyebrow green">NOVA TELEMETRIA</span><h2 id="modalTitle">Registrar leitura</h2><p class="modal-copy">Envie uma leitura manual para qualquer sensor da propriedade.</p>
+        <form id="readingForm"><div class="form-grid"><label>Sensor ID<input name="sensor_id" required minlength="2" placeholder="ex.: solo-talhao-01" /></label><label>Localização<input name="location" required minlength="2" placeholder="ex.: Talhão Norte" /></label><label>Métrica<select name="metric"><option value="soil_moisture">Umidade do solo</option><option value="temperature">Temperatura</option><option value="humidity">Umidade do ar</option><option value="smoke">Fumaça</option></select></label><label>Valor<div class="value-input"><input name="value" required type="number" step="0.1" placeholder="18" /><select name="unit"><option value="%">%</option><option value="°C">°C</option><option value="ppm">ppm</option><option value="bool">bool</option></select></div></label></div><div class="form-actions"><button class="secondary-button" id="cancelModal" type="button">Cancelar</button><button class="primary-button" id="submitReading" type="submit">Enviar leitura <span>→</span></button></div></form>
+      </section>
+    </div>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

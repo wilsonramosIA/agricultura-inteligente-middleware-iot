@@ -1,0 +1,10 @@
+.git
+.pytest_cache
+.pytest-*
+.venv
+__pycache__
+*.pyc
+outputs
+docs/imagens
+*.pptx
+*.db

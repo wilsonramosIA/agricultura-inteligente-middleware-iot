@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 import time
 from contextlib import asynccontextmanager
 from uuid import uuid4
@@ -6,6 +7,7 @@ from uuid import uuid4
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from common import config
 from common.models import TelemetryInput
@@ -90,3 +92,15 @@ async def list_alerts(request: Request, only_open: bool = True, _: None = Depend
 @app.patch("/api/v1/alerts/{alert_id}/acknowledge", tags=["Alertas"])
 async def acknowledge(alert_id: int, request: Request, _: None = Depends(require_client_key)):
     return await forward(request, "PATCH", config.ALERT_URL, f"/alerts/{alert_id}/acknowledge")
+
+
+@app.get("/api/v1/sensor-heartbeats", tags=["Operação"])
+async def sensor_heartbeats(request: Request, _: None = Depends(require_client_key)):
+    """Retorna o último heartbeat de cada sensor para o painel operacional."""
+    return await forward(request, "GET", config.TELEMETRY_URL, "/sensor-heartbeats")
+
+
+# O painel é servido pelo próprio gateway. Assim, em uma EC2 basta expor a porta
+# 8000 e não é necessário configurar CORS ou um servidor web adicional.
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

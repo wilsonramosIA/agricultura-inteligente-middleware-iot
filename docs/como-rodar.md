@@ -38,6 +38,21 @@ Para acompanhar os logs do Gateway:
 docker compose logs -f api-gateway
 ```
 
+### Publicar em uma instância AWS EC2
+
+O painel web é servido pelo próprio API Gateway em `/`, então não é necessário instalar Node.js, Nginx ou configurar CORS. Em uma instância Ubuntu com Docker instalado:
+
+```bash
+git clone <URL_DO_REPOSITORIO> terrapulse
+cd terrapulse
+cp .env.example .env
+docker compose up --build -d
+```
+
+No Security Group da instância, libere a porta `8000` (ou publique-a atrás de um Application Load Balancer). O painel ficará disponível em `http://IP_DA_EC2:8000` e a documentação em `http://IP_DA_EC2:8000/docs`.
+
+Para trocar a chave usada pelo painel, configure `CLIENT_API_KEY` no `.env`. Se ela for diferente da chave padrão, clique no avatar `WR` no canto superior direito e informe a mesma chave no navegador. Os volumes do Compose preservam telemetria e alertas durante atualizações do contêiner.
+
 Para encerrar os contêineres sem apagar os dados:
 
 ```powershell

@@ -81,6 +81,7 @@ Payload de exemplo:
 
 ## Estrutura
 
+- `frontend/`: dashboard web servido pelo API Gateway, com indicadores, gráfico, alertas, sensores e registro manual de telemetria
 - `gateway/`: API Gateway (middleware)
 - `telemetry/`: recebimento e persistência das leituras
 - `alerts/`: regras, criação e reconhecimento de alertas
